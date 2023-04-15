@@ -14,7 +14,6 @@
 #include <phg/utils/cameras_bundler_import.h>
 #include <phg/mvs/depth_maps/pm_depth_maps.h>
 #include <phg/mvs/depth_maps/pm_geometry.h>
-#include <phg/mvs/point_cloud_filtering/point_cloud_filtering_processor.h>
 
 #include "utils/test_utils.h"
 
