@@ -6,7 +6,7 @@
 
 [![Build Status](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2023/actions/workflows/cmake.yml/badge.svg?branch=task06&event=push)](https://github.com/PhotogrammetryCourse/PhotogrammetryTasks2023/actions/workflows/cmake.yml)
 
-**Жесткий дедлайн**: вечер 7 мая
+**Жесткий дедлайн**: вечер 9 мая
 
 0. Скачать и распаковать в папки data/src/datasets/ карты глубины: [saharov32](https://disk.yandex.com/d/2fWAdzpM4ibYBg), [herzjesu25](https://disk.yandex.com/d/n3MyKUjvuVPF6Q)
 
