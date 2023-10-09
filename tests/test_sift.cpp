@@ -8,7 +8,7 @@
 #include <libutils/timer.h>
 #include <libutils/rasserts.h>
 
-#include <phg/sift/sift.h>
+#include "phg/sift/sift.h"
 
 #include "utils/test_utils.h"
 
@@ -67,14 +67,16 @@ double diffAngles(double angle0, double angle1) {
     }
 }
 
-// На вход передается матрица описывающая преобразование картинки (сдвиг, поворот, масштабирование или их комбинация), допустимый процент Recall, и опционально можно тестировать другую картинку
+// На вход передается матрица описывающая преобразование картинки (сдвиг, поворот, масштабирование или их комбинация),
+// допустимый процент Recall, и опционально можно тестировать другую картинку
 void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat()) {
     if (img0.empty()) {
         img0 = cv::imread("data/src/test_sift/unicorn.png"); // грузим картинку по умолчанию
     }
 
     ASSERT_FALSE(img0.empty()); // проверка что картинка была загружена
-    // убедитесь что рабочая папка (Edit Configurations...->Working directory) указывает на корневую папку проекта (и тогда картинка по умолчанию найдется по относительному пути - data/src/test_sift/unicorn.png)
+    // убедитесь что рабочая папка (Edit Configurations...->Working directory) указывает на корневую папку проекта
+    // (и тогда картинка по умолчанию найдется по относительному пути - data/src/test_sift/unicorn.png)
     
     size_t width = img0.cols;
     size_t height = img0.rows;
@@ -94,14 +96,20 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat(
             cv::Mat desc0;
             cv::Mat desc1;
 
-            timer t; // очень удобно встраивать профилирование вашего кода по мере его написания, тогда полную картину видеть гораздо проще (особенно это помогает со старым кодом)
+            timer t;
+            // очень удобно встраивать профилирование вашего кода по мере его написания,
+            // тогда полную картину видеть гораздо проще (особенно это помогает со старым кодом)
+
             std::string method_name;
             std::string log_prefix;
             if (method == 0) {
+                // ORB - один из видов ключевых дескрипторов, отличается высокой скоростью и относительно неплохим качеством
                 method_name = "ORB";
                 log_prefix = "[ORB_OCV] ";
-                // ORB - один из видов ключевых дескрипторов, отличается высокой скоростью и относительно неплохим качеством
-                cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create(); // здесь можно было бы поиграть с его параметрами, например выделять больше чем 500 точек, строить большее число ступеней пирамиды и т.п.
+
+                // здесь можно было бы поиграть с его параметрами, например выделять больше чем 500 точек,
+                // строить большее число ступеней пирамиды и т.п.
+                cv::Ptr<cv::FeatureDetector> detector = cv::ORB::create();
                 detector->detect(img0, kps0); // детектируем ключевые точки на исходной картинке
                 detector->detect(img1, kps1); // детектируем ключевые точки на преобразованной картинке
 
@@ -110,34 +118,43 @@ void evaluateDetection(const cv::Mat &M, double minRecall, cv::Mat img0=cv::Mat(
             } else if (method == 1) {
                 method_name = "SIFTOCV";
                 log_prefix = "[SIFTOCV] ";
-                // ORB - один из видов ключевых дескрипторов, отличается высокой скоростью и относительно неплохим качеством
-                cv::Ptr<cv::FeatureDetector> detector = cv::SIFT::create(); // здесь можно было бы поиграть с его параметрами, например выделять больше чем 500 точек, строить большее число ступеней пирамиды и т.п.
+
+                cv::Ptr<cv::FeatureDetector> detector = cv::SIFT::create();
                 detector->detect(img0, kps0); // детектируем ключевые точки на исходной картинке
                 detector->detect(img1, kps1); // детектируем ключевые точки на преобразованной картинке
 
                 detector->compute(img0, kps0, desc0);
                 detector->compute(img1, kps1, desc1);
             } else if (method == 2) {
-                // TODO remove 'return' and uncomment
-                return;
-//                method_name = "SIFT_MY";
-//                log_prefix = "[SIFT_MY] ";
-//                phg::SIFT mySIFT;
-//                mySIFT.detectAndCompute(img0, kps0, desc0);
-//                mySIFT.detectAndCompute(img1, kps1, desc1);
+                method_name = "SIFT_MY";
+                log_prefix = "[SIFT_MY] ";
+
+                phg::SIFT mySIFT;
+
+                mySIFT.detectAndCompute(img0, kps0, desc0);
+                mySIFT.detectAndCompute(img1, kps1, desc1);
             } else {
-                rassert(false, 13532513412); // это не проверка как часть тестирования, это проверка что число итераций в цикле и if-else ветки все еще согласованы и не разошлись
+                // это не проверка как часть тестирования, это проверка, что число итераций в цикле и if-else ветки
+                // все еще согласованы и не разошлись
+                rassert(false, 13532513412);
             }
 
             std::cout << log_prefix << "Points detected: " << kps0.size() << " -> " << kps1.size() << " (in " << t.elapsed() << " sec)" << std::endl;
-    
-            std::vector<cv::Point2f> ps01(kps0.size()); // давайте построим эталон - найдем куда бы должны были сместиться ключевые точки с исходного изображения с учетом нашей матрицы трансформации M
+
+            // давайте построим эталон - найдем куда бы должны были сместиться ключевые точки с исходного изображения
+            // с учетом нашей матрицы трансформации M
+            std::vector<cv::Point2f> ps01(kps0.size());
             {
-                std::vector<cv::Point2f> ps0(kps0.size()); // здесь мы сейчас расположим детектированные ключевые точки (каждую нужно преобразовать из типа КлючеваяТочка в Точка2Дэ)
+                // здесь мы сейчас расположим детектированные ключевые точки
+                // (каждую нужно преобразовать из типа КлючеваяТочка в Точка2Дэ)
+                std::vector<cv::Point2f> ps0(kps0.size());
                 for (size_t i = 0; i < kps0.size(); ++i) {
                     ps0[i] = kps0[i].pt;
                 }
-                cv::transform(ps0, ps01, M); // преобразовываем все точки с исходного изображения в систему координат его искаженной версии с учетом матрицы M, эти точки - эталон
+
+                // преобразовываем все точки с исходного изображения в систему координат его искаженной версии
+                // с учетом матрицы M, эти точки - эталон
+                cv::transform(ps0, ps01, M);
             }
 
             double error_sum = 0.0;          // считаем суммарную ошибку координат сопоставлений точек чтобы найти среднюю ошибку (в пикселях)
